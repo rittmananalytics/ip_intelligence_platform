@@ -205,9 +205,8 @@ function ProcessingSection({ job, onProcessingComplete }: ProcessingSectionProps
                     <span className="col-span-2">IP ADDRESS</span>
                     <span className="col-span-2">DOMAIN</span>
                     <span className="col-span-2">COMPANY</span>
-                    <span className="col-span-2">LOCATION</span>
-                    <span className="col-span-2">INDUSTRY</span>
-                    <span className="col-span-2">ORG TYPE</span>
+                    <span className="col-span-3">LOCATION</span>
+                    <span className="col-span-3">ISP</span>
                   </div>
                   {recentResults.map((result, index) => (
                     <div 
@@ -250,12 +249,12 @@ function ProcessingSection({ job, onProcessingComplete }: ProcessingSectionProps
                             {/* ISP Column (3/12) */}
                             <span className="col-span-3 truncate">
                               {result.enrichmentData && typeof result.enrichmentData === 'object' && 'isp' in result.enrichmentData ? 
-                                result.enrichmentData.isp : '—'}
+                                String(result.enrichmentData.isp || '—') : '—'}
                             </span>
                           </>
                         ) : (
                           <span className="col-span-10 text-red-600">
-                            {result.error || "Lookup failed"}
+                            {typeof result.error === 'string' ? result.error : "Lookup failed"}
                           </span>
                         )}
                       </div>
