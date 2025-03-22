@@ -131,9 +131,6 @@ async function saveBatchToDatabase(
 }
 
 /**
- * Main function to enrich IP addresses in a CSV file
- */
-/**
  * Enrich a single IP address with domain, company, and geolocation data
  * Used by the API endpoint for single IP lookup
  */

@@ -13,7 +13,7 @@ import * as fs from "fs";
 import * as path from "path";
 import * as os from "os";
 import { z } from "zod";
-import { enrichIPAddresses } from "./ip-enrichment";
+import { enrichIPAddresses, enrichSingleIP } from "./ip-enrichment";
 import { randomUUID } from "crypto";
 import { insertIpEnrichmentJobSchema, ipEnrichmentSchema } from "@shared/schema";
 
@@ -362,6 +362,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error: any) {
       console.error("Download error:", error);
       res.status(500).json({ message: error.message || "Failed to download results" });
+    }
+  });
+
+  // Single IP lookup endpoint for API access
+  // This endpoint is used for individual IP lookups (e.g., from BigQuery UDFs)
+  app.get("/api/lookup", async (req: Request, res: Response) => {
+    try {
+      const ip = req.query.ip as string;
+      
+      if (!ip) {
+        return res.status(400).json({ 
+          success: false, 
+          error: "Missing IP parameter. Use ?ip=x.x.x.x in the query string." 
+        });
+      }
+      
+      // Get enrichment data for this single IP
+      const enrichmentData = await enrichSingleIP(ip);
+      
+      // Return the enrichment data as JSON
+      res.status(200).json(enrichmentData);
+    } catch (error: any) {
+      console.error("IP lookup error:", error);
+      res.status(500).json({ 
+        success: false, 
+        error: error.message || "Failed to lookup IP information",
+        ip: req.query.ip
+      });
     }
   });
 
