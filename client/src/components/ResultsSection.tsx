@@ -35,10 +35,13 @@ interface ResultsSectionProps {
 
 function ResultsSection({ jobId, onStartNew }: ResultsSectionProps) {
   const { toast } = useToast();
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 10;
   
-  // Fetch job results preview
+  // Fetch job results preview with pagination
   const { data, isLoading, error } = useQuery<ResultsPreview>({
-    queryKey: [`/api/jobs/${jobId}/preview`],
+    queryKey: [`/api/jobs/${jobId}/preview`, currentPage, pageSize],
+    queryFn: () => getResultsPreview(jobId, currentPage, pageSize),
     retry: 3
   });
 
@@ -175,9 +178,11 @@ function ResultsSection({ jobId, onStartNew }: ResultsSectionProps) {
                   <TableHead className="whitespace-nowrap text-xs font-medium">IP Address</TableHead>
                   <TableHead className="whitespace-nowrap text-xs font-medium">Domain</TableHead>
                   <TableHead className="whitespace-nowrap text-xs font-medium">Company</TableHead>
-                  <TableHead className="whitespace-nowrap text-xs font-medium">Country</TableHead>
-                  <TableHead className="whitespace-nowrap text-xs font-medium">City</TableHead>
-                  <TableHead className="whitespace-nowrap text-xs font-medium">ISP</TableHead>
+                  <TableHead className="whitespace-nowrap text-xs font-medium">Industry</TableHead>
+                  <TableHead className="whitespace-nowrap text-xs font-medium">Organization Type</TableHead>
+                  <TableHead className="whitespace-nowrap text-xs font-medium">Size</TableHead>
+                  <TableHead className="whitespace-nowrap text-xs font-medium">Location</TableHead>
+                  <TableHead className="whitespace-nowrap text-xs font-medium">ISP/ASN</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -186,9 +191,13 @@ function ResultsSection({ jobId, onStartNew }: ResultsSectionProps) {
                     <TableCell className="whitespace-nowrap font-mono text-xs">{row.ip}</TableCell>
                     <TableCell className="whitespace-nowrap text-sm">{row.domain || "-"}</TableCell>
                     <TableCell className="whitespace-nowrap text-sm">{row.company || "-"}</TableCell>
-                    <TableCell className="whitespace-nowrap text-sm">{row.country || "-"}</TableCell>
-                    <TableCell className="whitespace-nowrap text-sm">{row.city || "-"}</TableCell>
-                    <TableCell className="whitespace-nowrap text-sm">{row.isp || "-"}</TableCell>
+                    <TableCell className="whitespace-nowrap text-sm">{row.industry || "-"}</TableCell>
+                    <TableCell className="whitespace-nowrap text-sm">{row.organizationType || "-"}</TableCell>
+                    <TableCell className="whitespace-nowrap text-sm">{row.employeeCount || "-"}</TableCell>
+                    <TableCell className="whitespace-nowrap text-sm">
+                      {[row.city, row.country].filter(Boolean).join(", ") || "-"}
+                    </TableCell>
+                    <TableCell className="whitespace-nowrap text-sm">{row.isp || row.asn || "-"}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>

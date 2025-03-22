@@ -57,8 +57,8 @@ export async function getJobStatus(jobId: number): Promise<EnrichmentJob> {
 /**
  * Get preview of results for a completed job
  */
-export async function getResultsPreview(jobId: number): Promise<ResultsPreview> {
-  const response = await fetch(`/api/jobs/${jobId}/preview`, {
+export async function getResultsPreview(jobId: number, page: number = 1, pageSize: number = 10): Promise<ResultsPreview> {
+  const response = await fetch(`/api/jobs/${jobId}/preview?page=${page}&limit=${pageSize}`, {
     credentials: 'include',
   });
   

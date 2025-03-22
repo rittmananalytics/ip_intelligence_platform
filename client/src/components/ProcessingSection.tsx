@@ -200,45 +200,69 @@ function ProcessingSection({ job, onProcessingComplete }: ProcessingSectionProps
                 </div>
               ) : (
                 <div className="space-y-1 p-1">
+                  {/* Header row */}
+                  <div className="grid grid-cols-12 gap-2 w-full text-xs text-gray-500 font-semibold mb-2 border-b pb-1">
+                    <span className="col-span-2">IP ADDRESS</span>
+                    <span className="col-span-2">DOMAIN</span>
+                    <span className="col-span-2">COMPANY</span>
+                    <span className="col-span-2">LOCATION</span>
+                    <span className="col-span-2">INDUSTRY</span>
+                    <span className="col-span-2">ORG TYPE</span>
+                  </div>
                   {recentResults.map((result, index) => (
                     <div 
                       key={`result-${index}-${result.id || result.rowIndex}`} 
                       className={`p-1.5 rounded result-item-new ${result.success ? 'bg-gray-100' : 'bg-red-50'}`}
                     >
-                      <div className="flex items-start">
-                        <span className={`font-medium ${getStatusColor(result)}`}>
+                      <div className="grid grid-cols-12 gap-2 w-full">
+                        {/* IP Column (2/12) */}
+                        <span className={`col-span-2 font-medium ${getStatusColor(result)}`}>
                           {result.originalData && typeof result.originalData === 'object' && 'ip' in result.originalData 
                             ? result.originalData.ip 
                             : (result.enrichmentData && typeof result.enrichmentData === 'object' && 'ip' in result.enrichmentData 
                               ? result.enrichmentData.ip 
                               : 'Unknown IP')}
                         </span>
-                        <span className="mx-1">→</span>
+                        
                         {result.success ? (
-                          <div className="flex-1">
-                            {result.enrichmentData && typeof result.enrichmentData === 'object' && (
-                              <>
-                                {'domain' in result.enrichmentData && result.enrichmentData.domain && (
-                                  <span className="text-blue-600 block">{result.enrichmentData.domain}</span>
-                                )}
-                                {'company' in result.enrichmentData && result.enrichmentData.company && (
-                                  <span className="text-gray-800 block">{result.enrichmentData.company}</span>
-                                )}
-                                {(('city' in result.enrichmentData && result.enrichmentData.city) || 
-                                  ('country' in result.enrichmentData && result.enrichmentData.country)) && (
-                                  <span className="text-gray-600 block">
-                                    {[
-                                      'city' in result.enrichmentData ? result.enrichmentData.city : null, 
-                                      'region' in result.enrichmentData ? result.enrichmentData.region : null, 
-                                      'country' in result.enrichmentData ? result.enrichmentData.country : null
-                                    ].filter(Boolean).join(", ")}
-                                  </span>
-                                )}
-                              </>
-                            )}
-                          </div>
+                          <>
+                            {/* Domain Column (2/12) */}
+                            <span className="col-span-2 text-blue-600 truncate">
+                              {result.enrichmentData && typeof result.enrichmentData === 'object' && 'domain' in result.enrichmentData ? 
+                                result.enrichmentData.domain : '—'}
+                            </span>
+                            
+                            {/* Company Column (2/12) */}
+                            <span className="col-span-2 truncate">
+                              {result.enrichmentData && typeof result.enrichmentData === 'object' && 'company' in result.enrichmentData ? 
+                                result.enrichmentData.company : '—'}
+                            </span>
+                            
+                            {/* Location Column (2/12) */}
+                            <span className="col-span-2 text-gray-600 truncate">
+                              {result.enrichmentData && typeof result.enrichmentData === 'object' ?
+                                [
+                                  'city' in result.enrichmentData ? result.enrichmentData.city : null, 
+                                  'country' in result.enrichmentData ? result.enrichmentData.country : null
+                                ].filter(Boolean).join(", ") : '—'}
+                            </span>
+                            
+                            {/* Industry Column (2/12) */}
+                            <span className="col-span-2 truncate">
+                              {result.enrichmentData && typeof result.enrichmentData === 'object' && 'industry' in result.enrichmentData ? 
+                                result.enrichmentData.industry : '—'}
+                            </span>
+                            
+                            {/* Organization Type (2/12) */}
+                            <span className="col-span-2 truncate">
+                              {result.enrichmentData && typeof result.enrichmentData === 'object' && 'organizationType' in result.enrichmentData ? 
+                                result.enrichmentData.organizationType : '—'}
+                            </span>
+                          </>
                         ) : (
-                          <span className="text-red-600">{result.error || "Lookup failed"}</span>
+                          <span className="col-span-10 text-red-600">
+                            {result.error || "Lookup failed"}
+                          </span>
                         )}
                       </div>
                     </div>

@@ -44,6 +44,10 @@ export interface IPEnrichmentData {
   longitude?: number;
   isp?: string;
   asn?: string;
+  // Additional fields
+  industry?: string;
+  employeeCount?: '0-249' | '250-9999' | '10000+';
+  organizationType?: 'public' | 'education' | 'startup' | 'scale-up' | 'mid-market' | 'enterprise';
   success: boolean;
   error?: string;
 }
@@ -64,6 +68,10 @@ export interface IPEnrichmentResult {
 export interface ResultsPreview {
   job: EnrichmentJob;
   preview: any[];
+  totalResults: number;
+  currentPage: number;
+  totalPages: number;
+  pageSize: number;
 }
 
 export type WorkflowStep = 'upload' | 'config' | 'processing' | 'results';
