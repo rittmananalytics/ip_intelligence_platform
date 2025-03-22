@@ -200,20 +200,35 @@ function ProcessingSection({ job, onProcessingComplete }: ProcessingSectionProps
                       className={`p-1.5 rounded result-item-new ${result.success ? 'bg-gray-100' : 'bg-red-50'}`}
                     >
                       <div className="flex items-start">
-                        <span className={`font-medium ${getStatusColor(result)}`}>{result.ip}</span>
+                        <span className={`font-medium ${getStatusColor(result)}`}>
+                          {result.originalData && typeof result.originalData === 'object' && 'ip' in result.originalData 
+                            ? result.originalData.ip 
+                            : (result.enrichmentData && typeof result.enrichmentData === 'object' && 'ip' in result.enrichmentData 
+                              ? result.enrichmentData.ip 
+                              : 'Unknown IP')}
+                        </span>
                         <span className="mx-1">→</span>
                         {result.success ? (
                           <div className="flex-1">
-                            {result.domain && (
-                              <span className="text-blue-600 block">{result.domain}</span>
-                            )}
-                            {result.company && (
-                              <span className="text-gray-800 block">{result.company}</span>
-                            )}
-                            {(result.city || result.country) && (
-                              <span className="text-gray-600 block">
-                                {[result.city, result.region, result.country].filter(Boolean).join(", ")}
-                              </span>
+                            {result.enrichmentData && typeof result.enrichmentData === 'object' && (
+                              <>
+                                {'domain' in result.enrichmentData && result.enrichmentData.domain && (
+                                  <span className="text-blue-600 block">{result.enrichmentData.domain}</span>
+                                )}
+                                {'company' in result.enrichmentData && result.enrichmentData.company && (
+                                  <span className="text-gray-800 block">{result.enrichmentData.company}</span>
+                                )}
+                                {(('city' in result.enrichmentData && result.enrichmentData.city) || 
+                                  ('country' in result.enrichmentData && result.enrichmentData.country)) && (
+                                  <span className="text-gray-600 block">
+                                    {[
+                                      'city' in result.enrichmentData ? result.enrichmentData.city : null, 
+                                      'region' in result.enrichmentData ? result.enrichmentData.region : null, 
+                                      'country' in result.enrichmentData ? result.enrichmentData.country : null
+                                    ].filter(Boolean).join(", ")}
+                                  </span>
+                                )}
+                              </>
                             )}
                           </div>
                         ) : (
