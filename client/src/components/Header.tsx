@@ -1,4 +1,4 @@
-import { FaGlobe, FaBars } from "react-icons/fa";
+import { FaBars } from "react-icons/fa";
 import { useState } from "react";
 import { 
   Sheet, 
@@ -11,14 +11,19 @@ function Header() {
     <header className="bg-white shadow">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
         <div className="flex items-center">
-          <FaGlobe className="text-primary text-2xl mr-2" />
-          <h1 className="text-xl font-semibold text-gray-800">IP Enrichment Service</h1>
+          <a href="/" className="flex items-center">
+            <img 
+              src="/images/ra_logo.png" 
+              alt="Rittman Analytics Logo" 
+              className="h-8 mr-2" 
+            />
+          </a>
         </div>
         
         {/* Desktop Navigation */}
         <div className="hidden sm:flex items-center space-x-4">
           <a href="#" className="text-gray-600 hover:text-primary text-sm">Documentation</a>
-          <a href="#" className="text-gray-600 hover:text-primary text-sm">API</a>
+          <a href="/API-README.md" target="_blank" className="text-gray-600 hover:text-primary text-sm">API</a>
           <a href="#" className="text-gray-600 hover:text-primary text-sm">Pricing</a>
         </div>
         
@@ -32,7 +37,7 @@ function Header() {
           <SheetContent>
             <div className="flex flex-col space-y-4 mt-8">
               <a href="#" className="text-gray-600 hover:text-primary text-sm">Documentation</a>
-              <a href="#" className="text-gray-600 hover:text-primary text-sm">API</a>
+              <a href="/API-README.md" target="_blank" className="text-gray-600 hover:text-primary text-sm">API</a>
               <a href="#" className="text-gray-600 hover:text-primary text-sm">Pricing</a>
             </div>
           </SheetContent>
