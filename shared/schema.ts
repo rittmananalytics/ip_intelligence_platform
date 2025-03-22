@@ -136,3 +136,4 @@ export type IpEnrichmentResult = z.infer<typeof ipEnrichmentSchema>;
 export type IpEnrichmentResultRecord = typeof ipEnrichmentResults.$inferSelect;
 export type InsertIpEnrichmentResult = z.infer<typeof insertIpEnrichmentResultSchema>;
 export type BatchInsertIpEnrichmentResults = z.infer<typeof batchInsertIpEnrichmentResultSchema>;
+export type IPEnrichmentData = z.infer<typeof ipEnrichmentSchema>;

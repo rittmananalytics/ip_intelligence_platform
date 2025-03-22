@@ -9,7 +9,8 @@ import {
   type IpEnrichmentJob, 
   type IpEnrichmentResult,
   type BatchInsertIpEnrichmentResults,
-  type InsertIpEnrichmentResult 
+  type InsertIpEnrichmentResult,
+  type IPEnrichmentData
 } from "@shared/schema";
 import dns from "dns/promises";
 
@@ -132,6 +133,67 @@ async function saveBatchToDatabase(
 /**
  * Main function to enrich IP addresses in a CSV file
  */
+/**
+ * Enrich a single IP address with domain, company, and geolocation data
+ * Used by the API endpoint for single IP lookup
+ */
+export async function enrichSingleIP(ip: string): Promise<IPEnrichmentData> {
+  try {
+    // Validate IP address
+    if (!isValidIP(ip)) {
+      return {
+        ip,
+        success: false,
+        error: "Invalid IP address format"
+      };
+    }
+
+    // Initialize result structure
+    const result: IPEnrichmentData = {
+      ip,
+      success: false
+    };
+
+    try {
+      // Get IP info from the external service
+      const ipInfo = await getIPInfo(ip);
+      
+      // Add geolocation data
+      result.country = ipInfo.country;
+      result.city = ipInfo.city;
+      result.region = ipInfo.regionName;
+      result.latitude = ipInfo.lat;
+      result.longitude = ipInfo.lon;
+      
+      // Add company and ISP data
+      result.company = ipInfo.org;
+      result.isp = ipInfo.isp;
+      result.asn = ipInfo.as;
+      
+      // Check if IP is from a common ISP
+      result.ispFiltered = isCommonISP(ipInfo.isp, ipInfo.org);
+      
+      // Get domain data via reverse DNS
+      result.domain = await getDomainFromIP(ip);
+      
+      result.success = true;
+    } catch (error) {
+      // Handle error but still return the IP with error info
+      result.success = false;
+      result.error = error instanceof Error ? error.message : "Unknown error";
+    }
+    
+    return result;
+  } catch (error) {
+    // Return a minimal error response if anything goes wrong
+    return {
+      ip,
+      success: false,
+      error: error instanceof Error ? error.message : "Unknown error"
+    };
+  }
+}
+
 export async function enrichIPAddresses(job: IpEnrichmentJob): Promise<void> {
   const filePath = path.join(os.tmpdir(), job.fileName);
   const outputPath = path.join(os.tmpdir(), `${job.fileName}_enriched.csv`);
