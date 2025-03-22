@@ -121,16 +121,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (results.length === 0 && process.env.NODE_ENV !== 'production' && 
           job.status === 'processing' && req.query.sample !== 'false') {
         
-        // Generate a few sample results for UI testing
+        // Use real-looking user-provided IPs for display
         const sampleIPs = [
-          '142.250.185.46',   // Google
-          '157.240.22.35',    // Facebook
-          '104.244.42.65',    // Twitter
-          '151.101.65.140',   // Reddit
-          '13.32.204.63',     // Amazon
-          '172.65.251.78',    // Cloudflare
-          '192.168.1.1',      // Local IP (will fail)
-          '10.0.0.1'          // Private IP (will fail)
+          '216.58.215.110',   // Real user IP example 1
+          '172.217.169.46',   // Real user IP example 2
+          '31.13.92.36',      // Real user IP example 3
+          '199.232.68.133',   // Real user IP example 4
+          '52.95.120.67',     // Real user IP example 5
+          '104.16.85.20',     // Real user IP example 6
+          '13.107.42.14',     // Real user IP example 7
+          '151.101.129.140'   // Real user IP example 8
         ];
         
         // Create 3-5 sample results based on the current time to make the display more interesting
@@ -140,40 +140,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
         for (let i = 0; i < numResults; i++) {
           const ipIndex = (Date.now() + i) % sampleIPs.length;
           const ip = sampleIPs[ipIndex];
-          const isPublicIP = !ip.startsWith('192.168') && !ip.startsWith('10.');
+          const isPublicIP = true; // All our sample IPs are public
           
           // Create sample data that matches our DB schema
           const now = new Date();
-          const enrichmentData = isPublicIP ? {
+          // Mapping of industry categories and other fields for our sample data
+          const industries = ["Technology", "Finance", "Healthcare", "Retail", "Manufacturing", "Education", "Media", "Government"];
+          const orgTypes = ["public", "education", "startup", "scale-up", "mid-market", "enterprise"];
+          const empSizes = ["0-249", "250-9999", "10000+"];
+            
+          const enrichmentData = {
             ip,
-            domain: ip === '142.250.185.46' ? 'google.com' : 
-                    ip === '157.240.22.35' ? 'facebook.com' : 
-                    ip === '104.244.42.65' ? 'twitter.com' : 
-                    ip === '151.101.65.140' ? 'reddit.com' : 
-                    ip === '13.32.204.63' ? 'amazon.com' : 'example.com',
-            company: ip === '142.250.185.46' ? 'Google LLC' : 
-                     ip === '157.240.22.35' ? 'Meta Platforms, Inc.' : 
-                     ip === '104.244.42.65' ? 'Twitter, Inc.' : 
-                     ip === '151.101.65.140' ? 'Reddit, Inc.' : 
-                     ip === '13.32.204.63' ? 'Amazon Technologies, Inc.' : 'Example Corporation',
-            country: 'United States',
-            city: ip === '142.250.185.46' ? 'Mountain View' : 
-                  ip === '157.240.22.35' ? 'Menlo Park' : 
-                  ip === '104.244.42.65' ? 'San Francisco' : 
-                  ip === '13.32.204.63' ? 'Seattle' : 'San Jose',
-            region: 'California',
+            domain: `company-${ipIndex}.example.com`,
+            company: `Company ${ipIndex + 1} Ltd.`,
+            country: ['United States', 'Canada', 'United Kingdom', 'Germany', 'Australia'][ipIndex % 5],
+            city: ['New York', 'San Francisco', 'London', 'Berlin', 'Sydney'][ipIndex % 5],
+            region: ['New York', 'California', 'England', 'Brandenburg', 'New South Wales'][ipIndex % 5],
             latitude: 37.4 + (Math.random() * 0.5),
             longitude: -122.0 + (Math.random() * 0.5),
-            isp: ip === '142.250.185.46' ? 'Google LLC' : 
-                 ip === '157.240.22.35' ? 'Facebook, Inc.' : 
-                 ip === '104.244.42.65' ? 'Twitter, Inc.' : 
-                 ip === '13.32.204.63' ? 'Amazon.com, Inc.' : 'Cloudflare, Inc.',
-            asn: 'AS' + (15169 + ipIndex),
+            isp: `ISP Provider ${ipIndex + 1}`,
+            asn: `AS${10000 + ipIndex}`,
+            // New fields
+            industry: industries[ipIndex % industries.length],
+            employeeCount: empSizes[ipIndex % empSizes.length],
+            organizationType: orgTypes[ipIndex % orgTypes.length],
             success: true
-          } : { 
-            ip, 
-            success: false, 
-            error: 'Private IP address, not routable on the internet' 
           };
           
           sampleResults.push({
@@ -183,8 +174,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
             originalData: { ip },
             enrichmentData,
             processed: true,
-            success: isPublicIP,
-            error: isPublicIP ? null : 'Private IP address, not routable on the internet',
+            success: true,  // All are successful now
+            error: null,    // No errors
             createdAt: now,
             updatedAt: now
           });
@@ -246,40 +237,67 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const totalResults = job.totalIPs;
       const totalPages = Math.ceil(totalResults / limit);
 
-      // Mock preview results with our new fields
+      // Updated preview results with user IPs and our new fields
       const previewResults = [
         {
-          ip: "142.250.185.46",
-          domain: "google.com",
-          company: "Google LLC",
+          ip: "216.58.215.110",
+          domain: "company-1.example.com",
+          company: "Company 1 Ltd.",
           country: "United States",
-          city: "Mountain View",
-          isp: "Google LLC",
+          city: "New York",
+          region: "New York",
+          isp: "ISP Provider 1",
           industry: "Technology",
           employeeCount: "10000+",
           organizationType: "public"
         },
         {
-          ip: "157.240.22.35",
-          domain: "facebook.com",
-          company: "Meta Platforms, Inc.",
-          country: "United States",
-          city: "Menlo Park",
-          isp: "Facebook, Inc.",
-          industry: "Social Media",
-          employeeCount: "10000+",
-          organizationType: "public"
+          ip: "172.217.169.46",
+          domain: "company-2.example.com",
+          company: "Company 2 Ltd.",
+          country: "Canada",
+          city: "San Francisco",
+          region: "California",
+          isp: "ISP Provider 2",
+          industry: "Finance",
+          employeeCount: "250-9999",
+          organizationType: "education"
         },
         {
-          ip: "13.107.42.14",
-          domain: "microsoft.com",
-          company: "Microsoft Corporation",
-          country: "United States",
-          city: "Redmond",
-          isp: "Microsoft Corporation",
-          industry: "Technology",
+          ip: "31.13.92.36",
+          domain: "company-3.example.com",
+          company: "Company 3 Ltd.",
+          country: "United Kingdom",
+          city: "London",
+          region: "England",
+          isp: "ISP Provider 3",
+          industry: "Healthcare",
+          employeeCount: "0-249",
+          organizationType: "startup"
+        },
+        {
+          ip: "199.232.68.133",
+          domain: "company-4.example.com",
+          company: "Company 4 Ltd.",
+          country: "Germany",
+          city: "Berlin",
+          region: "Brandenburg",
+          isp: "ISP Provider 4",
+          industry: "Retail",
           employeeCount: "10000+",
-          organizationType: "public"
+          organizationType: "scale-up"
+        },
+        {
+          ip: "52.95.120.67",
+          domain: "company-5.example.com",
+          company: "Company 5 Ltd.",
+          country: "Australia",
+          city: "Sydney",
+          region: "New South Wales",
+          isp: "ISP Provider 5",
+          industry: "Manufacturing",
+          employeeCount: "250-9999",
+          organizationType: "mid-market"
         }
       ];
 
