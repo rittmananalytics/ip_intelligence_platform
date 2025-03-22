@@ -179,6 +179,10 @@ function ProcessingSection({ job, onProcessingComplete }: ProcessingSectionProps
               <p className="font-medium text-red-600">{currentJob.failedIPs}</p>
             </div>
             <div>
+              <p className="text-gray-600">Filtered IPs (ISPs):</p>
+              <p className="font-medium text-amber-600">{currentJob.filteredIPs}</p>
+            </div>
+            <div>
               <p className="text-gray-600">Time Elapsed:</p>
               <p className="font-medium text-gray-800">{formatTime(elapsedTime)}</p>
             </div>

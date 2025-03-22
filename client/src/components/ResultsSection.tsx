@@ -138,13 +138,19 @@ function ResultsSection({ jobId, onStartNew }: ResultsSectionProps) {
               <p className="text-green-700 text-sm">
                 Successfully processed {job.successfulIPs} of {job.totalIPs} IP addresses
               </p>
+              <p className="text-amber-700 text-sm mt-1">
+                {job.filteredIPs > 0 ? 
+                  `${job.filteredIPs} common ISP IP addresses have been filtered from the download file.` : 
+                  "No common ISP IP addresses were detected."
+                }
+              </p>
             </div>
           </div>
         </div>
         
         <div className="mb-6">
           <h4 className="text-sm font-medium text-gray-700 mb-3">Summary</h4>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
             <div className="bg-blue-50 border border-blue-100 rounded-md p-3">
               <p className="text-xs text-blue-500 font-medium">Total IPs</p>
               <p className="text-xl font-semibold text-blue-800">{job.totalIPs}</p>
@@ -156,6 +162,11 @@ function ResultsSection({ jobId, onStartNew }: ResultsSectionProps) {
             <div className="bg-red-50 border border-red-100 rounded-md p-3">
               <p className="text-xs text-red-500 font-medium">Failed</p>
               <p className="text-xl font-semibold text-red-800">{job.failedIPs}</p>
+            </div>
+            <div className="bg-amber-50 border border-amber-100 rounded-md p-3">
+              <p className="text-xs text-amber-500 font-medium">ISP Filtered</p>
+              <p className="text-xl font-semibold text-amber-800">{job.filteredIPs}</p>
+              <p className="text-xs text-amber-600">Excluded from download</p>
             </div>
             <div className="bg-purple-50 border border-purple-100 rounded-md p-3">
               <p className="text-xs text-purple-500 font-medium">Processing Time</p>
