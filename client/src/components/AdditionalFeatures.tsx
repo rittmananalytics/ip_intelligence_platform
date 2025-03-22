@@ -15,7 +15,7 @@ function AdditionalFeatures() {
               <p className="mt-1 text-sm text-gray-600">Integrate IP enrichment directly into your applications</p>
             </div>
           </div>
-          <a href="#" className="mt-2 text-primary hover:text-primary/80 text-sm font-medium inline-flex items-center">
+          <a href="/API-README.md" target="_blank" className="mt-2 text-primary hover:text-primary/80 text-sm font-medium inline-flex items-center">
             View API Documentation
             <FaArrowRight className="ml-1" />
           </a>
@@ -48,11 +48,11 @@ function AdditionalFeatures() {
             </div>
             <div className="ml-4">
               <h3 className="text-md font-medium text-gray-900">Bulk Processing</h3>
-              <p className="mt-1 text-sm text-gray-600">Process larger datasets with our enterprise plan</p>
+              <p className="mt-1 text-sm text-gray-600">Process large datasets with auto-saving and resume capabilities</p>
             </div>
           </div>
           <a href="#" className="mt-2 text-primary hover:text-primary/80 text-sm font-medium inline-flex items-center">
-            Upgrade to Enterprise
+            Learn More
             <FaArrowRight className="ml-1" />
           </a>
         </CardContent>

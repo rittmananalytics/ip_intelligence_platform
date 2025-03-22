@@ -50,59 +50,77 @@ You can use this API with BigQuery User Defined Functions (UDFs) to enrich your 
 ### Example BigQuery UDF
 
 ```sql
-CREATE FUNCTION get_ip_intelligence(ip STRING) 
+CREATE FUNCTION `your_project.your_dataset.get_ip_intelligence`(ip STRING) 
 RETURNS STRUCT<
   country STRING,
   city STRING,
+  region STRING,
+  latitude FLOAT64,
+  longitude FLOAT64,
   company STRING,
   isp STRING,
   asn STRING,
-  is_isp BOOL,
-  domain STRING
+  ispFiltered BOOL,
+  domain STRING,
+  success BOOL
 >
 LANGUAGE js AS """
   function get_ip_intelligence(ip) {
-    var url = 'https://your-app-url.replit.app/api/lookup?ip=' + ip;
-    var response = UrlFetchApp.fetch(url);
+    // Using the deployed application URL
+    var url = 'https://ip-enrich.rittmananalytics.com/api/lookup?ip=' + ip;
     
-    // Handle errors
-    if (response.getResponseCode() !== 200) {
+    try {
+      var response = UrlFetchApp.fetch(url);
+      
+      // Handle errors
+      if (response.getResponseCode() !== 200) {
+        return {
+          country: null,
+          city: null,
+          region: null,
+          latitude: null,
+          longitude: null,
+          company: null,
+          isp: null,
+          asn: null,
+          ispFiltered: null,
+          domain: null,
+          success: false
+        };
+      }
+      
+      var data = JSON.parse(response.getContentText());
+      
+      // Return the enriched data
+      return {
+        country: data.country || null,
+        city: data.city || null,
+        region: data.region || null,
+        latitude: data.latitude || null,
+        longitude: data.longitude || null,
+        company: data.company || null,
+        isp: data.isp || null,
+        asn: data.asn || null,
+        ispFiltered: data.ispFiltered || false,
+        domain: data.domain || null,
+        success: data.success || false
+      };
+    } catch (e) {
+      // Handle any exceptions
       return {
         country: null,
         city: null,
+        region: null,
+        latitude: null,
+        longitude: null,
         company: null,
         isp: null,
         asn: null,
-        is_isp: null,
-        domain: null
+        ispFiltered: null,
+        domain: null,
+        success: false
       };
     }
-    
-    var data = JSON.parse(response.getContentText());
-    
-    // Check if the enrichment was successful
-    if (!data.success) {
-      return {
-        country: null,
-        city: null,
-        company: null,
-        isp: null,
-        asn: null,
-        is_isp: null,
-        domain: null
-      };
-    }
-    
-    // Return the enriched data
-    return {
-      country: data.country || null,
-      city: data.city || null,
-      company: data.company || null,
-      isp: data.isp || null,
-      asn: data.asn || null,
-      is_isp: data.ispFiltered || false,
-      domain: data.domain || null
-    };
   }
 """
 OPTIONS (
@@ -118,17 +136,40 @@ SELECT
   get_ip_intelligence(client_ip).country AS ip_country,
   get_ip_intelligence(client_ip).company AS ip_company,
   get_ip_intelligence(client_ip).domain AS ip_domain,
-  get_ip_intelligence(client_ip).is_isp AS is_common_isp
+  get_ip_intelligence(client_ip).ispFiltered AS is_common_isp
 FROM 
   `your-project.your-dataset.web_logs`
 LIMIT 
   100;
 ```
 
+For better performance when using the UDF with multiple columns in the same row, you can call it once and store the result:
+
+```sql
+SELECT 
+  client_ip,
+  ip_info.country AS ip_country,
+  ip_info.city AS ip_city,
+  ip_info.company AS ip_company,
+  ip_info.domain AS ip_domain,
+  ip_info.ispFiltered AS is_common_isp
+FROM (
+  SELECT 
+    client_ip,
+    get_ip_intelligence(client_ip) AS ip_info
+  FROM 
+    `your-project.your-dataset.web_logs`
+)
+WHERE 
+  ip_info.success = true
+LIMIT 
+  100;
+```
+
 ## Rate Limits
 
-Please note that the IP intelligence service uses a third-party data provider with rate limits. If you're processing large volumes of data, consider using the batch processing API endpoint instead.
+Please note that the IP intelligence service uses a third-party data provider with rate limits. If you're processing large volumes of data, consider using the batch processing functionality.
 
-## Batch Processing API
+## Batch Processing 
 
-For large-scale IP address processing, use our web interface to upload CSV files containing IP addresses for batch enrichment.
+For large-scale IP address processing, use our web interface to upload CSV files containing IP addresses for batch enrichment. The batch processing functionality is available as part of the standard application and supports auto-saving, handling thousands of IP addresses efficiently.
