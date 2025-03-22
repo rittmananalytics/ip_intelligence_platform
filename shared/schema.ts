@@ -1,4 +1,4 @@
-import { pgTable, text, serial, integer, jsonb, timestamp } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, jsonb, timestamp, boolean, json } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -35,6 +35,12 @@ export const ipEnrichmentJobs = pgTable("ip_enrichment_jobs", {
   includeDomain: integer("include_domain").default(1),
   includeCompany: integer("include_company").default(1),
   includeNetwork: integer("include_network").default(1),
+  // Track if the job has been partially saved
+  partialSaveAvailable: boolean("partial_save_available").default(false),
+  // Store headers from the original CSV file
+  csvHeaders: text("csv_headers").array(),
+  // Last checkpoint for autosaving
+  lastCheckpoint: integer("last_checkpoint").default(0),
 });
 
 export const insertIpEnrichmentJobSchema = createInsertSchema(ipEnrichmentJobs).omit({
@@ -44,7 +50,40 @@ export const insertIpEnrichmentJobSchema = createInsertSchema(ipEnrichmentJobs).
   processedIPs: true,
   successfulIPs: true,
   failedIPs: true,
+  partialSaveAvailable: true,
+  lastCheckpoint: true,
 });
+
+// Table to store partial enrichment results
+export const ipEnrichmentResults = pgTable("ip_enrichment_results", {
+  id: serial("id").primaryKey(),
+  jobId: integer("job_id").notNull().references(() => ipEnrichmentJobs.id),
+  // Store the original row data as JSON
+  originalData: json("original_data").notNull(),
+  // Store the enrichment results
+  enrichmentData: json("enrichment_data"),
+  // Track position in the file for resuming
+  rowIndex: integer("row_index").notNull(),
+  // Track if this row has been processed
+  processed: boolean("processed").default(false),
+  // Track if the processing was successful
+  success: boolean("success").default(false),
+  // Store error message if processing failed
+  error: text("error"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const insertIpEnrichmentResultSchema = createInsertSchema(ipEnrichmentResults).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+// Batch insert schema for bulk operations
+export const batchInsertIpEnrichmentResultSchema = z.array(
+  insertIpEnrichmentResultSchema
+);
 
 // Example of IP enrichment result format - used only for typing
 export const ipEnrichmentSchema = z.object({
@@ -67,3 +106,6 @@ export type InsertUser = z.infer<typeof insertUserSchema>;
 export type IpEnrichmentJob = typeof ipEnrichmentJobs.$inferSelect;
 export type InsertIpEnrichmentJob = z.infer<typeof insertIpEnrichmentJobSchema>;
 export type IpEnrichmentResult = z.infer<typeof ipEnrichmentSchema>;
+export type IpEnrichmentResultRecord = typeof ipEnrichmentResults.$inferSelect;
+export type InsertIpEnrichmentResult = z.infer<typeof insertIpEnrichmentResultSchema>;
+export type BatchInsertIpEnrichmentResults = z.infer<typeof batchInsertIpEnrichmentResultSchema>;
