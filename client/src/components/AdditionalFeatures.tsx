@@ -33,7 +33,7 @@ function AdditionalFeatures() {
               <p className="mt-1 text-sm text-gray-600">Access your previously processed files</p>
             </div>
           </div>
-          <a href="#" className="mt-2 text-primary hover:text-primary/80 text-sm font-medium inline-flex items-center">
+          <a href="/history" className="mt-2 text-primary hover:text-primary/80 text-sm font-medium inline-flex items-center">
             View Processing History
             <FaArrowRight className="ml-1" />
           </a>
@@ -51,7 +51,7 @@ function AdditionalFeatures() {
               <p className="mt-1 text-sm text-gray-600">Process large datasets with auto-saving and resume capabilities</p>
             </div>
           </div>
-          <a href="#" className="mt-2 text-primary hover:text-primary/80 text-sm font-medium inline-flex items-center">
+          <a href="/bulk-processing" className="mt-2 text-primary hover:text-primary/80 text-sm font-medium inline-flex items-center">
             Learn More
             <FaArrowRight className="ml-1" />
           </a>
