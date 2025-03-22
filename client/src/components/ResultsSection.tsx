@@ -103,7 +103,14 @@ function ResultsSection({ jobId, onStartNew }: ResultsSectionProps) {
     );
   }
 
-  const { job, preview } = data;
+  const { job, preview, totalResults, totalPages = 1, currentPage: dataCurrentPage = 1 } = data;
+  
+  // Pagination handlers
+  const handlePageChange = (page: number) => {
+    if (page >= 1 && page <= totalPages) {
+      setCurrentPage(page);
+    }
+  };
 
   return (
     <Card className="bg-white shadow-sm mb-8">
@@ -207,24 +214,59 @@ function ResultsSection({ jobId, onStartNew }: ResultsSectionProps) {
         
         <div className="mt-6 flex flex-col sm:flex-row justify-between items-center">
           <div className="mb-4 sm:mb-0 text-sm text-gray-500">
-            Showing 1 to {preview.length} of {job.totalIPs} results
+            Showing {Math.min((dataCurrentPage - 1) * 10 + 1, totalResults || 0)} to {Math.min(dataCurrentPage * 10, totalResults || 0)} of {totalResults || job.totalIPs} results
           </div>
           <Pagination>
             <PaginationContent>
               <PaginationItem>
-                <PaginationPrevious href="#" />
+                <PaginationPrevious 
+                  href="#" 
+                  onClick={(e) => {
+                    e.preventDefault();
+                    handlePageChange(dataCurrentPage - 1);
+                  }}
+                  className={dataCurrentPage <= 1 ? 'pointer-events-none opacity-50' : ''}
+                />
               </PaginationItem>
+              
+              {/* Generate pagination links */}
+              {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                // For pages > 5, show current page and surrounding pages
+                let pageNum = i + 1;
+                if (totalPages > 5 && dataCurrentPage > 3) {
+                  pageNum = Math.min(totalPages - 4 + i, totalPages);
+                  if (dataCurrentPage > totalPages - 2) {
+                    pageNum = totalPages - 4 + i;
+                  } else if (dataCurrentPage > 3) {
+                    pageNum = dataCurrentPage - 2 + i;
+                  }
+                }
+                
+                return (
+                  <PaginationItem key={pageNum}>
+                    <PaginationLink 
+                      href="#" 
+                      isActive={pageNum === dataCurrentPage}
+                      onClick={(e) => {
+                        e.preventDefault(); 
+                        handlePageChange(pageNum);
+                      }}
+                    >
+                      {pageNum}
+                    </PaginationLink>
+                  </PaginationItem>
+                );
+              })}
+              
               <PaginationItem>
-                <PaginationLink href="#" isActive>1</PaginationLink>
-              </PaginationItem>
-              <PaginationItem>
-                <PaginationLink href="#">2</PaginationLink>
-              </PaginationItem>
-              <PaginationItem>
-                <PaginationLink href="#">3</PaginationLink>
-              </PaginationItem>
-              <PaginationItem>
-                <PaginationNext href="#" />
+                <PaginationNext 
+                  href="#" 
+                  onClick={(e) => {
+                    e.preventDefault();
+                    handlePageChange(dataCurrentPage + 1);
+                  }}
+                  className={dataCurrentPage >= totalPages ? 'pointer-events-none opacity-50' : ''}
+                />
               </PaginationItem>
             </PaginationContent>
           </Pagination>

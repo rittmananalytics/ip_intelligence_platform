@@ -215,10 +215,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Get results preview (limited records)
+  // Get results preview (limited records with pagination)
   app.get("/api/jobs/:id/preview", async (req: Request, res: Response) => {
     try {
       const jobId = parseInt(req.params.id);
+      const page = parseInt(req.query.page as string) || 1;
+      const limit = parseInt(req.query.limit as string) || 10;
+      const offset = (page - 1) * limit;
+      
       const job = await storage.getEnrichmentJob(jobId);
       
       if (!job) {
@@ -237,9 +241,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Results file not found" });
       }
 
-      // Here we'd implement a CSV parser to read the first few rows
-      // Sending a mock response for now since we're not actually 
-      // implementing the full CSV parsing logic in this example
+      // Here we'd implement a CSV parser to read the rows with pagination
+      // Sending a mock response with pagination data
+      const totalResults = job.totalIPs;
+      const totalPages = Math.ceil(totalResults / limit);
+
+      // Mock preview results with our new fields
       const previewResults = [
         {
           ip: "142.250.185.46",
@@ -247,7 +254,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
           company: "Google LLC",
           country: "United States",
           city: "Mountain View",
-          isp: "Google LLC"
+          isp: "Google LLC",
+          industry: "Technology",
+          employeeCount: "10000+",
+          organizationType: "public"
         },
         {
           ip: "157.240.22.35",
@@ -255,13 +265,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
           company: "Meta Platforms, Inc.",
           country: "United States",
           city: "Menlo Park",
-          isp: "Facebook, Inc."
+          isp: "Facebook, Inc.",
+          industry: "Social Media",
+          employeeCount: "10000+",
+          organizationType: "public"
+        },
+        {
+          ip: "13.107.42.14",
+          domain: "microsoft.com",
+          company: "Microsoft Corporation",
+          country: "United States",
+          city: "Redmond",
+          isp: "Microsoft Corporation",
+          industry: "Technology",
+          employeeCount: "10000+",
+          organizationType: "public"
         }
       ];
 
       res.status(200).json({
         job,
-        preview: previewResults
+        preview: previewResults,
+        totalResults,
+        currentPage: page,
+        totalPages,
+        pageSize: limit
       });
     } catch (error: any) {
       console.error("Preview error:", error);
