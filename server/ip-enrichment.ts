@@ -139,6 +139,7 @@ export async function enrichIPAddresses(job: IpEnrichmentJob): Promise<void> {
   let processed = 0;
   let successful = 0;
   let failed = 0;
+  let filtered = 0; // Count of IPs that are filtered (common ISPs)
   let headers: string[] = [];
   // Current batch for auto-saving
   const BATCH_SIZE = 100;

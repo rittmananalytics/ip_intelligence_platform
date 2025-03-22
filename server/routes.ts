@@ -3,6 +3,8 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import multer from "multer";
 import type { Request as MulterRequest } from 'express-serve-static-core';
+import csvParser from "csv-parser";
+import { stringify } from "csv-stringify/sync";
 
 interface RequestWithFile extends Request {
   file?: Express.Multer.File;
@@ -314,18 +316,48 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Path where the results CSV would be stored
       const resultsPath = path.join(os.tmpdir(), `${job.fileName}_enriched.csv`);
+      const filteredOutputPath = path.join(os.tmpdir(), `${job.fileName}_filtered_enriched.csv`);
       
       // Check if file exists
       if (!fs.existsSync(resultsPath)) {
         return res.status(404).json({ message: "Results file not found" });
       }
 
+      // Create a filtered version of the CSV that excludes ISP Filtered = yes rows
+      const rows: any[] = [];
+      let headers: string[] = [];
+      
+      // Read the original CSV file
+      await new Promise<void>((resolve, reject) => {
+        fs.createReadStream(resultsPath)
+          .pipe(csvParser())
+          .on('headers', (headerList) => {
+            headers = headerList;
+          })
+          .on('data', (row) => {
+            // Only include rows where isp_filtered is not "yes"
+            if (row.isp_filtered !== "yes") {
+              rows.push(row);
+            }
+          })
+          .on('end', () => {
+            resolve();
+          })
+          .on('error', (error) => {
+            reject(error);
+          });
+      });
+      
+      // Write the filtered CSV
+      const csvContent = stringify([headers, ...rows.map(row => headers.map(header => row[header]))]);
+      fs.writeFileSync(filteredOutputPath, csvContent);
+      
       // Set headers for file download
       res.setHeader("Content-Type", "text/csv");
       res.setHeader("Content-Disposition", `attachment; filename=${job.originalFileName.replace('.csv', '')}_enriched.csv`);
       
-      // Stream the file to the response
-      const fileStream = fs.createReadStream(resultsPath);
+      // Stream the filtered file to the response
+      const fileStream = fs.createReadStream(filteredOutputPath);
       fileStream.pipe(res);
     } catch (error: any) {
       console.error("Download error:", error);
