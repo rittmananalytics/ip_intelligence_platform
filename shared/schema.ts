@@ -31,6 +31,7 @@ export const ipEnrichmentJobs = pgTable("ip_enrichment_jobs", {
   processedIPs: integer("processed_ips").default(0),
   successfulIPs: integer("successful_ips").default(0),
   failedIPs: integer("failed_ips").default(0),
+  filteredIPs: integer("filtered_ips").default(0),
   status: text("status").notNull(), // 'pending', 'processing', 'completed', 'failed'
   createdAt: timestamp("created_at").defaultNow().notNull(),
   completedAt: timestamp("completed_at"),
@@ -65,6 +66,7 @@ export const insertIpEnrichmentJobSchema = createInsertSchema(ipEnrichmentJobs).
   processedIPs: true,
   successfulIPs: true,
   failedIPs: true,
+  filteredIPs: true,
   partialSaveAvailable: true,
   lastCheckpoint: true,
   csvHeaders: true,

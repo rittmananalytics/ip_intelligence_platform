@@ -21,6 +21,7 @@ export interface EnrichmentJob {
   processedIPs: number;
   successfulIPs: number;
   failedIPs: number;
+  filteredIPs: number;
   status: 'pending' | 'processing' | 'completed' | 'failed';
   createdAt: string | Date;
   completedAt: string | Date | null;
