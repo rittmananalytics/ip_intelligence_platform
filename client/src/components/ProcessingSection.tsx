@@ -238,8 +238,8 @@ function ProcessingSection({ job, onProcessingComplete }: ProcessingSectionProps
                                 result.enrichmentData.company : '—'}
                             </span>
                             
-                            {/* Location Column (2/12) */}
-                            <span className="col-span-2 text-gray-600 truncate">
+                            {/* Location Column (3/12) */}
+                            <span className="col-span-3 text-gray-600 truncate">
                               {result.enrichmentData && typeof result.enrichmentData === 'object' ?
                                 [
                                   'city' in result.enrichmentData ? result.enrichmentData.city : null, 
@@ -247,16 +247,10 @@ function ProcessingSection({ job, onProcessingComplete }: ProcessingSectionProps
                                 ].filter(Boolean).join(", ") : '—'}
                             </span>
                             
-                            {/* Industry Column (2/12) */}
-                            <span className="col-span-2 truncate">
-                              {result.enrichmentData && typeof result.enrichmentData === 'object' && 'industry' in result.enrichmentData ? 
-                                result.enrichmentData.industry : '—'}
-                            </span>
-                            
-                            {/* Organization Type (2/12) */}
-                            <span className="col-span-2 truncate">
-                              {result.enrichmentData && typeof result.enrichmentData === 'object' && 'organizationType' in result.enrichmentData ? 
-                                result.enrichmentData.organizationType : '—'}
+                            {/* ISP Column (3/12) */}
+                            <span className="col-span-3 truncate">
+                              {result.enrichmentData && typeof result.enrichmentData === 'object' && 'isp' in result.enrichmentData ? 
+                                result.enrichmentData.isp : '—'}
                             </span>
                           </>
                         ) : (

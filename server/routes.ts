@@ -231,13 +231,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Format the actual results for the preview
       const previewResults = enrichmentResults.map(result => {
         // Extract enrichment data fields for display
-        const {
-          ip, domain, company, country, city, region, isp, asn
-        } = result.enrichmentData;
+        const enrichmentData = result.enrichmentData as {
+          ip: string;
+          domain?: string;
+          company?: string;
+          country?: string;
+          city?: string;
+          region?: string;
+          isp?: string;
+          asn?: string;
+          ispFiltered?: boolean;
+        };
         
         // Return only the fields we need for the preview
         return {
-          ip, domain, company, country, city, region, isp, asn
+          ip: enrichmentData.ip,
+          domain: enrichmentData.domain,
+          company: enrichmentData.company,
+          country: enrichmentData.country, 
+          city: enrichmentData.city,
+          region: enrichmentData.region,
+          isp: enrichmentData.isp,
+          asn: enrichmentData.asn,
+          ispFiltered: enrichmentData.ispFiltered
         };
       });
       
@@ -256,7 +272,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
               city: "New York",
               region: "New York",
               isp: "ISP Provider 1",
-              asn: "AS15169"
+              asn: "AS15169",
+              ispFiltered: true
             },
             // Additional sample records...
           ],

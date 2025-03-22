@@ -44,10 +44,7 @@ export interface IPEnrichmentData {
   longitude?: number;
   isp?: string;
   asn?: string;
-  // Additional fields
-  industry?: string;
-  employeeCount?: '0-249' | '250-9999' | '10000+';
-  organizationType?: 'public' | 'education' | 'startup' | 'scale-up' | 'mid-market' | 'enterprise';
+  ispFiltered?: boolean;
   success: boolean;
   error?: string;
 }
