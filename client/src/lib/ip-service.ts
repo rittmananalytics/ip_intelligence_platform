@@ -1,0 +1,78 @@
+import { apiRequest } from '@/lib/queryClient';
+import { EnrichmentJob, EnrichmentOptions, FileUpload, ResultsPreview } from '@/types';
+
+/**
+ * Upload a CSV file
+ */
+export async function uploadCSVFile(file: File): Promise<FileUpload> {
+  const formData = new FormData();
+  formData.append('file', file);
+  
+  const response = await fetch('/api/upload', {
+    method: 'POST',
+    body: formData,
+    credentials: 'include',
+  });
+  
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`Upload failed: ${response.status} ${errorText}`);
+  }
+  
+  return await response.json();
+}
+
+/**
+ * Start an IP enrichment job
+ */
+export async function startEnrichmentJob(fileUpload: FileUpload, options: EnrichmentOptions): Promise<EnrichmentJob> {
+  const data = {
+    fileName: fileUpload.fileName,
+    originalFileName: fileUpload.originalFileName,
+    totalIPs: 0, // Will be updated during processing
+    status: 'pending',
+    ...options
+  };
+  
+  const response = await apiRequest('POST', '/api/enrich', data);
+  return await response.json();
+}
+
+/**
+ * Get the status of an enrichment job
+ */
+export async function getJobStatus(jobId: number): Promise<EnrichmentJob> {
+  const response = await fetch(`/api/jobs/${jobId}`, {
+    credentials: 'include',
+  });
+  
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`Failed to get job status: ${response.status} ${errorText}`);
+  }
+  
+  return await response.json();
+}
+
+/**
+ * Get preview of results for a completed job
+ */
+export async function getResultsPreview(jobId: number): Promise<ResultsPreview> {
+  const response = await fetch(`/api/jobs/${jobId}/preview`, {
+    credentials: 'include',
+  });
+  
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`Failed to get results preview: ${response.status} ${errorText}`);
+  }
+  
+  return await response.json();
+}
+
+/**
+ * Generate download URL for enriched CSV file
+ */
+export function getDownloadUrl(jobId: number): string {
+  return `/api/jobs/${jobId}/download`;
+}
