@@ -3,7 +3,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { getJobStatus, getRecentResults, RecentResultsResponse } from "@/lib/ip-service";
-import { EnrichmentJob, IPEnrichmentResult } from "@/types";
+import { EnrichmentJob, IPEnrichmentResult, IPEnrichmentData } from "@/types";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface ProcessingSectionProps {
@@ -128,7 +128,13 @@ function ProcessingSection({ job, onProcessingComplete }: ProcessingSectionProps
   // Helper to determine result status color
   const getStatusColor = (result: IPEnrichmentResult) => {
     if (!result.success) return "text-red-600";
-    if (result.domain && result.company) return "text-green-600";
+    
+    // Check enrichment data for completeness
+    if (result.enrichmentData && typeof result.enrichmentData === 'object') {
+      const data = result.enrichmentData as IPEnrichmentData;
+      if (data.domain && data.company) return "text-green-600";
+    }
+    
     return "text-yellow-500"; // Partial success
   };
 
@@ -196,7 +202,7 @@ function ProcessingSection({ job, onProcessingComplete }: ProcessingSectionProps
                 <div className="space-y-1 p-1">
                   {recentResults.map((result, index) => (
                     <div 
-                      key={`${result.ip}-${index}`} 
+                      key={`result-${index}-${result.id || result.rowIndex}`} 
                       className={`p-1.5 rounded result-item-new ${result.success ? 'bg-gray-100' : 'bg-red-50'}`}
                     >
                       <div className="flex items-start">

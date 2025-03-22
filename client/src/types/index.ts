@@ -33,7 +33,7 @@ export interface EnrichmentJob {
   includeNetwork: number;
 }
 
-export interface IPEnrichmentResult {
+export interface IPEnrichmentData {
   ip: string;
   domain?: string;
   company?: string;
@@ -46,6 +46,19 @@ export interface IPEnrichmentResult {
   asn?: string;
   success: boolean;
   error?: string;
+}
+
+export interface IPEnrichmentResult {
+  id: number;
+  jobId: number;
+  rowIndex: number;
+  originalData: any;
+  enrichmentData: IPEnrichmentData;
+  processed: boolean;
+  success: boolean;
+  error: string | null;
+  createdAt: string | Date;
+  updatedAt: string | Date;
 }
 
 export interface ResultsPreview {
