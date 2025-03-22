@@ -23,7 +23,7 @@ function Header() {
         {/* Desktop Navigation */}
         <div className="hidden sm:flex items-center space-x-4">
           <a href="#" className="text-gray-600 hover:text-primary text-sm">Documentation</a>
-          <a href="/API-README.md" target="_blank" className="text-gray-600 hover:text-primary text-sm">API</a>
+          <a href="/api" className="text-gray-600 hover:text-primary text-sm">API</a>
           <a href="#" className="text-gray-600 hover:text-primary text-sm">Pricing</a>
         </div>
         
@@ -37,7 +37,7 @@ function Header() {
           <SheetContent>
             <div className="flex flex-col space-y-4 mt-8">
               <a href="#" className="text-gray-600 hover:text-primary text-sm">Documentation</a>
-              <a href="/API-README.md" target="_blank" className="text-gray-600 hover:text-primary text-sm">API</a>
+              <a href="/api" className="text-gray-600 hover:text-primary text-sm">API</a>
               <a href="#" className="text-gray-600 hover:text-primary text-sm">Pricing</a>
             </div>
           </SheetContent>

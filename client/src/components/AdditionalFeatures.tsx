@@ -15,7 +15,7 @@ function AdditionalFeatures() {
               <p className="mt-1 text-sm text-gray-600">Integrate IP enrichment directly into your applications</p>
             </div>
           </div>
-          <a href="/API-README.md" target="_blank" className="mt-2 text-primary hover:text-primary/80 text-sm font-medium inline-flex items-center">
+          <a href="/api" className="mt-2 text-primary hover:text-primary/80 text-sm font-medium inline-flex items-center">
             View API Documentation
             <FaArrowRight className="ml-1" />
           </a>

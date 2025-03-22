@@ -5,6 +5,7 @@ import { Toaster } from "@/components/ui/toaster";
 import Home from "@/pages/Home";
 import History from "@/pages/History";
 import BulkProcessing from "@/pages/BulkProcessing";
+import ApiDocs from "@/pages/ApiDocs";
 import NotFound from "@/pages/not-found";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -15,6 +16,7 @@ function Router() {
       <Route path="/" component={Home}/>
       <Route path="/history" component={History}/>
       <Route path="/bulk-processing" component={BulkProcessing}/>
+      <Route path="/api" component={ApiDocs}/>
       <Route component={NotFound} />
     </Switch>
   );
