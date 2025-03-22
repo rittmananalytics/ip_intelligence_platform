@@ -1,5 +1,5 @@
 import { useState, useRef, ChangeEvent, DragEvent } from "react";
-import { RiUploadCloud2Line, RiFileUploadLine } from "react-icons/ri";
+import { FaCloudUploadAlt, FaFileUpload } from "react-icons/fa";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
@@ -103,7 +103,7 @@ function UploadSection({ onUploadComplete }: UploadSectionProps) {
           onClick={openFileSelector}
         >
           <div className="mb-4">
-            <RiUploadCloud2Line className="mx-auto text-5xl text-gray-400" />
+            <FaCloudUploadAlt className="mx-auto text-5xl text-gray-400" />
           </div>
           <p className="text-gray-700 mb-1">Drag and drop your CSV file here</p>
           <p className="text-gray-500 text-sm mb-4">or</p>
@@ -111,7 +111,7 @@ function UploadSection({ onUploadComplete }: UploadSectionProps) {
             onClick={(e) => { e.stopPropagation(); openFileSelector(); }}
             disabled={isUploading}
           >
-            <RiFileUploadLine className="mr-2" />
+            <FaFileUpload className="mr-2" />
             {isUploading ? "Uploading..." : "Browse Files"}
           </Button>
           <input 
