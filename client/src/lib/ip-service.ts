@@ -1,5 +1,5 @@
 import { apiRequest } from '@/lib/queryClient';
-import { EnrichmentJob, EnrichmentOptions, FileUpload, ResultsPreview } from '@/types';
+import { EnrichmentJob, EnrichmentOptions, FileUpload, ResultsPreview, IPEnrichmentResult } from '@/types';
 
 /**
  * Upload a CSV file
@@ -75,4 +75,25 @@ export async function getResultsPreview(jobId: number): Promise<ResultsPreview> 
  */
 export function getDownloadUrl(jobId: number): string {
   return `/api/jobs/${jobId}/download`;
+}
+
+/**
+ * Get recent enrichment results for real-time display
+ */
+export interface RecentResultsResponse {
+  results: IPEnrichmentResult[];
+  nextIndex: number;
+}
+
+export async function getRecentResults(jobId: number, since: number = 0, limit: number = 50): Promise<RecentResultsResponse> {
+  const response = await fetch(`/api/jobs/${jobId}/recent-results?since=${since}&limit=${limit}`, {
+    credentials: 'include',
+  });
+  
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`Failed to get recent results: ${response.status} ${errorText}`);
+  }
+  
+  return await response.json();
 }

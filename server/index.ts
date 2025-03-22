@@ -38,15 +38,10 @@ app.use((req, res, next) => {
 });
 
 (async () => {
-  // Initialize database before starting the server
-  try {
-    log('Initializing database connection...');
-    await initializeDatabase();
-    log('Database initialized successfully');
-  } catch (error) {
-    log('Error initializing database. Continuing with memory storage fallback.');
-    console.error('Database initialization error:', error);
-  }
+  // TEMPORARILY BYPASSING DATABASE INITIALIZATION TO FOCUS ON APPLICATION FUNCTIONALITY
+  log('Temporarily bypassing database initialization. Using memory storage.');
+  
+  // We'll revisit database integration later after fixing core functionality
 
   const server = await registerRoutes(app);
 

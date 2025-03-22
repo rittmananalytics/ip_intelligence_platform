@@ -1,9 +1,10 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { getJobStatus } from "@/lib/ip-service";
-import { EnrichmentJob } from "@/types";
+import { getJobStatus, getRecentResults, RecentResultsResponse } from "@/lib/ip-service";
+import { EnrichmentJob, IPEnrichmentResult } from "@/types";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface ProcessingSectionProps {
   job: EnrichmentJob;
@@ -15,6 +16,9 @@ function ProcessingSection({ job, onProcessingComplete }: ProcessingSectionProps
   const [currentJob, setCurrentJob] = useState<EnrichmentJob>(job);
   const [elapsedTime, setElapsedTime] = useState(0);
   const [isCanceling, setIsCanceling] = useState(false);
+  const [recentResults, setRecentResults] = useState<IPEnrichmentResult[]>([]);
+  const [nextResultIndex, setNextResultIndex] = useState(0);
+  const scrollAreaRef = useRef<HTMLDivElement>(null);
 
   // Poll job status
   useEffect(() => {
@@ -54,6 +58,45 @@ function ProcessingSection({ job, onProcessingComplete }: ProcessingSectionProps
 
     return () => clearInterval(timer);
   }, []);
+  
+  // Fetch recent results for real-time display
+  useEffect(() => {
+    if (currentJob.status !== 'processing') {
+      return;
+    }
+    
+    const fetchResults = async () => {
+      try {
+        const response = await getRecentResults(currentJob.id, nextResultIndex);
+        
+        if (response.results.length > 0) {
+          // Append new results
+          setRecentResults(prev => [...prev, ...response.results]);
+          setNextResultIndex(response.nextIndex);
+          
+          // Auto-scroll to bottom
+          setTimeout(() => {
+            if (scrollAreaRef.current) {
+              const scrollContainer = scrollAreaRef.current.querySelector('[data-radix-scroll-area-viewport]');
+              if (scrollContainer) {
+                scrollContainer.scrollTop = scrollContainer.scrollHeight;
+              }
+            }
+          }, 100);
+        }
+      } catch (error) {
+        console.error("Error fetching recent results:", error);
+      }
+    };
+    
+    // Initial fetch
+    fetchResults();
+    
+    // Set up polling interval
+    const pollInterval = setInterval(fetchResults, 2000);
+    
+    return () => clearInterval(pollInterval);
+  }, [currentJob.id, currentJob.status, nextResultIndex]);
 
   // Format time as MM:SS
   const formatTime = (seconds: number) => {
@@ -82,6 +125,13 @@ function ProcessingSection({ job, onProcessingComplete }: ProcessingSectionProps
     ? Math.round((currentJob.processedIPs / currentJob.totalIPs) * 100) 
     : 0;
 
+  // Helper to determine result status color
+  const getStatusColor = (result: IPEnrichmentResult) => {
+    if (!result.success) return "text-red-600";
+    if (result.domain && result.company) return "text-green-600";
+    return "text-yellow-500"; // Partial success
+  };
+
   return (
     <Card className="bg-white shadow-sm mb-8">
       <CardContent className="p-6">
@@ -103,7 +153,7 @@ function ProcessingSection({ job, onProcessingComplete }: ProcessingSectionProps
           </p>
         </div>
         
-        <div className="border border-gray-200 rounded-md p-4 bg-gray-50">
+        <div className="border border-gray-200 rounded-md p-4 bg-gray-50 mb-6">
           <h4 className="text-sm font-medium text-gray-700 mb-2">Processing Details</h4>
           <div className="grid grid-cols-2 gap-4 text-sm">
             <div>
@@ -133,7 +183,55 @@ function ProcessingSection({ job, onProcessingComplete }: ProcessingSectionProps
           </div>
         </div>
         
-        <div className="mt-6 flex justify-center">
+        {/* Real-time results scrolling window */}
+        <div className="mb-6">
+          <h4 className="text-sm font-medium text-gray-700 mb-2">Live Enrichment Results</h4>
+          <div className="border border-gray-200 rounded-md bg-gray-50 overflow-hidden">
+            <ScrollArea ref={scrollAreaRef} className="h-[250px] p-2 font-mono text-xs">
+              {recentResults.length === 0 ? (
+                <div className="p-4 text-center text-gray-500">
+                  Waiting for results...
+                </div>
+              ) : (
+                <div className="space-y-1 p-1">
+                  {recentResults.map((result, index) => (
+                    <div 
+                      key={`${result.ip}-${index}`} 
+                      className={`p-1.5 rounded result-item-new ${result.success ? 'bg-gray-100' : 'bg-red-50'}`}
+                    >
+                      <div className="flex items-start">
+                        <span className={`font-medium ${getStatusColor(result)}`}>{result.ip}</span>
+                        <span className="mx-1">→</span>
+                        {result.success ? (
+                          <div className="flex-1">
+                            {result.domain && (
+                              <span className="text-blue-600 block">{result.domain}</span>
+                            )}
+                            {result.company && (
+                              <span className="text-gray-800 block">{result.company}</span>
+                            )}
+                            {(result.city || result.country) && (
+                              <span className="text-gray-600 block">
+                                {[result.city, result.region, result.country].filter(Boolean).join(", ")}
+                              </span>
+                            )}
+                          </div>
+                        ) : (
+                          <span className="text-red-600">{result.error || "Lookup failed"}</span>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </ScrollArea>
+          </div>
+          <p className="mt-1 text-xs text-gray-500">
+            Showing {recentResults.length} most recent results
+          </p>
+        </div>
+        
+        <div className="flex justify-center">
           <Button 
             variant="secondary" 
             onClick={() => setIsCanceling(true)}

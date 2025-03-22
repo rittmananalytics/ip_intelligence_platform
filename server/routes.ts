@@ -2,6 +2,11 @@ import type { Express, Request, Response } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import multer from "multer";
+import type { Request as MulterRequest } from 'express-serve-static-core';
+
+interface RequestWithFile extends Request {
+  file?: Express.Multer.File;
+}
 import * as fs from "fs";
 import * as path from "path";
 import * as os from "os";
@@ -23,7 +28,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const apiRouter = app.route("/api");
   
   // Upload CSV file
-  app.post("/api/upload", upload.single("file"), async (req: Request, res: Response) => {
+  app.post("/api/upload", upload.single("file"), async (req: RequestWithFile, res: Response) => {
     try {
       if (!req.file) {
         return res.status(400).json({ message: "No file uploaded" });
@@ -91,6 +96,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error: any) {
       console.error("Job status error:", error);
       res.status(500).json({ message: error.message || "Failed to get job status" });
+    }
+  });
+  
+  // Get recent enrichment results for real-time display
+  app.get("/api/jobs/:id/recent-results", async (req: Request, res: Response) => {
+    try {
+      const jobId = parseInt(req.params.id);
+      const job = await storage.getEnrichmentJob(jobId);
+      
+      if (!job) {
+        return res.status(404).json({ message: "Job not found" });
+      }
+      
+      // Get the latest results (limit to 50 for performance)
+      const limit = req.query.limit ? parseInt(req.query.limit as string) : 50;
+      const since = req.query.since ? parseInt(req.query.since as string) : 0;
+      
+      // Fetch results after the 'since' index
+      const results = await storage.getEnrichmentResults(jobId, since, limit);
+      
+      res.status(200).json({ 
+        results,
+        nextIndex: since + results.length
+      });
+    } catch (error: any) {
+      console.error("Recent results error:", error);
+      res.status(500).json({ message: error.message || "Failed to get recent results" });
     }
   });
 

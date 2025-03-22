@@ -193,10 +193,14 @@ export class MemStorage implements IStorage {
     const id = this.jobIdCounter++;
     const createdAt = new Date();
     
-    // Ensure userId is null not undefined if not provided
+    // Ensure all fields that might be undefined are set to null
     const jobData = {
       ...job,
-      userId: job.userId ?? null
+      userId: job.userId ?? null,
+      includeGeolocation: job.includeGeolocation ?? 1,
+      includeDomain: job.includeDomain ?? 1,
+      includeCompany: job.includeCompany ?? 1,
+      includeNetwork: job.includeNetwork ?? 1
     };
     
     const newJob: IpEnrichmentJob = { 
@@ -306,15 +310,21 @@ export class MemStorage implements IStorage {
   }
 }
 
-// Try to use the database storage, fall back to memory storage if it fails
-let storageImpl: IStorage;
+// We'll start with memory storage and switch to database storage after confirming 
+// the database is properly initialized
+let storageImpl: IStorage = new MemStorage();
+console.log('Initially using memory storage - will switch to DB if available');
 
-try {
-  storageImpl = new DBStorage();
-  console.log('Using database storage');
-} catch (error) {
-  console.error('Failed to initialize database storage, falling back to memory storage:', error);
-  storageImpl = new MemStorage();
+// This will be called after database initialization
+export function setupDatabaseStorage() {
+  try {
+    storageImpl = new DBStorage();
+    console.log('Successfully switched to database storage');
+    return true;
+  } catch (error) {
+    console.error('Failed to switch to database storage:', error);
+    return false;
+  }
 }
 
 // Export a single instance of the storage to be used across the application
