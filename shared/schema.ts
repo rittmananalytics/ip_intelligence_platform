@@ -1,6 +1,7 @@
 import { pgTable, text, serial, integer, jsonb, timestamp, boolean, json } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
+import { relations } from "drizzle-orm";
 
 // We define tables for both user management and IP enrichment data
 
@@ -10,6 +11,11 @@ export const users = pgTable("users", {
   username: text("username").notNull().unique(),
   password: text("password").notNull(),
 });
+
+// Define relations for users
+export const usersRelations = relations(users, ({ many }) => ({
+  jobs: many(ipEnrichmentJobs),
+}));
 
 export const insertUserSchema = createInsertSchema(users).pick({
   username: true,
@@ -43,6 +49,15 @@ export const ipEnrichmentJobs = pgTable("ip_enrichment_jobs", {
   lastCheckpoint: integer("last_checkpoint").default(0),
 });
 
+// Define relations for ipEnrichmentJobs
+export const ipEnrichmentJobsRelations = relations(ipEnrichmentJobs, ({ one, many }) => ({
+  user: one(users, {
+    fields: [ipEnrichmentJobs.userId],
+    references: [users.id],
+  }),
+  results: many(ipEnrichmentResults),
+}));
+
 export const insertIpEnrichmentJobSchema = createInsertSchema(ipEnrichmentJobs).omit({
   id: true,
   createdAt: true,
@@ -52,6 +67,7 @@ export const insertIpEnrichmentJobSchema = createInsertSchema(ipEnrichmentJobs).
   failedIPs: true,
   partialSaveAvailable: true,
   lastCheckpoint: true,
+  csvHeaders: true,
 });
 
 // Table to store partial enrichment results
@@ -65,14 +81,22 @@ export const ipEnrichmentResults = pgTable("ip_enrichment_results", {
   // Track position in the file for resuming
   rowIndex: integer("row_index").notNull(),
   // Track if this row has been processed
-  processed: boolean("processed").default(false),
+  processed: boolean("processed").default(false).notNull(),
   // Track if the processing was successful
-  success: boolean("success").default(false),
+  success: boolean("success").default(false).notNull(),
   // Store error message if processing failed
   error: text("error"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
+
+// Define relations for ipEnrichmentResults
+export const ipEnrichmentResultsRelations = relations(ipEnrichmentResults, ({ one }) => ({
+  job: one(ipEnrichmentJobs, {
+    fields: [ipEnrichmentResults.jobId],
+    references: [ipEnrichmentJobs.id],
+  }),
+}));
 
 export const insertIpEnrichmentResultSchema = createInsertSchema(ipEnrichmentResults).omit({
   id: true,
@@ -97,6 +121,7 @@ export const ipEnrichmentSchema = z.object({
   longitude: z.number().optional(),
   isp: z.string().optional(),
   asn: z.string().optional(),
+  ispFiltered: z.boolean().optional(),
   success: z.boolean(),
   error: z.string().optional(),
 });

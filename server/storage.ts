@@ -192,8 +192,15 @@ export class MemStorage implements IStorage {
   async createEnrichmentJob(job: InsertIpEnrichmentJob): Promise<IpEnrichmentJob> {
     const id = this.jobIdCounter++;
     const createdAt = new Date();
+    
+    // Ensure userId is null not undefined if not provided
+    const jobData = {
+      ...job,
+      userId: job.userId ?? null
+    };
+    
     const newJob: IpEnrichmentJob = { 
-      ...job, 
+      ...jobData, 
       id, 
       createdAt, 
       processedIPs: 0,
@@ -203,7 +210,8 @@ export class MemStorage implements IStorage {
       status: 'pending',
       partialSaveAvailable: false,
       lastCheckpoint: 0,
-      csvHeaders: []
+      csvHeaders: [],
+      error: null
     };
     this.enrichmentJobs.set(id, newJob);
     return newJob;
@@ -249,7 +257,13 @@ export class MemStorage implements IStorage {
         ...result,
         id,
         createdAt: new Date(),
-        updatedAt: new Date()
+        updatedAt: new Date(),
+        error: result.error || null,
+        processed: result.processed || false,
+        success: result.success || false,
+        // Ensure enrichmentData is not undefined
+        enrichmentData: result.enrichmentData || null,
+        originalData: result.originalData
       };
       
       this.enrichmentResults.set(compositeKey, record);
