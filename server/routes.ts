@@ -144,11 +144,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
           
           // Create sample data that matches our DB schema
           const now = new Date();
-          // Mapping of industry categories and other fields for our sample data
-          const industries = ["Technology", "Finance", "Healthcare", "Retail", "Manufacturing", "Education", "Media", "Government"];
-          const orgTypes = ["public", "education", "startup", "scale-up", "mid-market", "enterprise"];
-          const empSizes = ["0-249", "250-9999", "10000+"];
-            
           const enrichmentData = {
             ip,
             domain: `company-${ipIndex}.example.com`,
@@ -160,10 +155,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
             longitude: -122.0 + (Math.random() * 0.5),
             isp: `ISP Provider ${ipIndex + 1}`,
             asn: `AS${10000 + ipIndex}`,
-            // New fields
-            industry: industries[ipIndex % industries.length],
-            employeeCount: empSizes[ipIndex % empSizes.length],
-            organizationType: orgTypes[ipIndex % orgTypes.length],
             success: true
           };
           
@@ -241,14 +232,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const previewResults = enrichmentResults.map(result => {
         // Extract enrichment data fields for display
         const {
-          ip, domain, company, country, city, region, isp, asn,
-          industry, employeeCount, organizationType
+          ip, domain, company, country, city, region, isp, asn
         } = result.enrichmentData;
         
         // Return only the fields we need for the preview
         return {
-          ip, domain, company, country, city, region, isp, asn,
-          industry, employeeCount, organizationType
+          ip, domain, company, country, city, region, isp, asn
         };
       });
       
@@ -267,9 +256,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
               city: "New York",
               region: "New York",
               isp: "ISP Provider 1",
-              industry: "Technology",
-              employeeCount: "10000+",
-              organizationType: "public"
+              asn: "AS15169"
             },
             // Additional sample records...
           ],

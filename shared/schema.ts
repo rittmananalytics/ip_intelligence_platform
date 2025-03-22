@@ -121,10 +121,6 @@ export const ipEnrichmentSchema = z.object({
   longitude: z.number().optional(),
   isp: z.string().optional(),
   asn: z.string().optional(),
-  // Additional fields
-  industry: z.string().optional(),
-  employeeCount: z.enum(['0-249', '250-9999', '10000+']).optional(),
-  organizationType: z.enum(['public', 'education', 'startup', 'scale-up', 'mid-market', 'enterprise']).optional(),
   ispFiltered: z.boolean().optional(),
   success: z.boolean(),
   error: z.string().optional(),
