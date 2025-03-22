@@ -117,9 +117,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       let results = await storage.getEnrichmentResults(jobId, since, limit);
       
       // If we're in development mode and have no results, return some sample data
-      // This is only for UI testing purposes
-      if (results.length === 0 && process.env.NODE_ENV !== 'production' && 
-          job.status === 'processing' && req.query.sample !== 'false') {
+      // Only show sample data if explicitly requested and no real data is available
+      if (results.length === 0 && req.query.sample === 'true' && 
+          job.status === 'processing') {
         
         // Use real-looking user-provided IPs for display
         const sampleIPs = [
@@ -232,74 +232,53 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Results file not found" });
       }
 
-      // Here we'd implement a CSV parser to read the rows with pagination
-      // Sending a mock response with pagination data
-      const totalResults = job.totalIPs;
+      // Get actual results from the database with pagination
+      let enrichmentResults = await storage.getEnrichmentResults(jobId, offset, limit);
+      const totalResults = await storage.getResultsCount(jobId);
       const totalPages = Math.ceil(totalResults / limit);
-
-      // Updated preview results with user IPs and our new fields
-      const previewResults = [
-        {
-          ip: "216.58.215.110",
-          domain: "company-1.example.com",
-          company: "Company 1 Ltd.",
-          country: "United States",
-          city: "New York",
-          region: "New York",
-          isp: "ISP Provider 1",
-          industry: "Technology",
-          employeeCount: "10000+",
-          organizationType: "public"
-        },
-        {
-          ip: "172.217.169.46",
-          domain: "company-2.example.com",
-          company: "Company 2 Ltd.",
-          country: "Canada",
-          city: "San Francisco",
-          region: "California",
-          isp: "ISP Provider 2",
-          industry: "Finance",
-          employeeCount: "250-9999",
-          organizationType: "education"
-        },
-        {
-          ip: "31.13.92.36",
-          domain: "company-3.example.com",
-          company: "Company 3 Ltd.",
-          country: "United Kingdom",
-          city: "London",
-          region: "England",
-          isp: "ISP Provider 3",
-          industry: "Healthcare",
-          employeeCount: "0-249",
-          organizationType: "startup"
-        },
-        {
-          ip: "199.232.68.133",
-          domain: "company-4.example.com",
-          company: "Company 4 Ltd.",
-          country: "Germany",
-          city: "Berlin",
-          region: "Brandenburg",
-          isp: "ISP Provider 4",
-          industry: "Retail",
-          employeeCount: "10000+",
-          organizationType: "scale-up"
-        },
-        {
-          ip: "52.95.120.67",
-          domain: "company-5.example.com",
-          company: "Company 5 Ltd.",
-          country: "Australia",
-          city: "Sydney",
-          region: "New South Wales",
-          isp: "ISP Provider 5",
-          industry: "Manufacturing",
-          employeeCount: "250-9999",
-          organizationType: "mid-market"
-        }
-      ];
+      
+      // Format the actual results for the preview
+      const previewResults = enrichmentResults.map(result => {
+        // Extract enrichment data fields for display
+        const {
+          ip, domain, company, country, city, region, isp, asn,
+          industry, employeeCount, organizationType
+        } = result.enrichmentData;
+        
+        // Return only the fields we need for the preview
+        return {
+          ip, domain, company, country, city, region, isp, asn,
+          industry, employeeCount, organizationType
+        };
+      });
+      
+      // If no results available in database, use default sample data (only in development)
+      if (previewResults.length === 0 && process.env.NODE_ENV !== 'production' && req.query.sample === 'true') {
+        console.log("No preview results in database, using sample data");
+        // Sample data for UI development only
+        return res.status(200).json({
+          job,
+          preview: [
+            {
+              ip: "216.58.215.110",
+              domain: "company-1.example.com",
+              company: "Company 1 Ltd.",
+              country: "United States",
+              city: "New York",
+              region: "New York",
+              isp: "ISP Provider 1",
+              industry: "Technology",
+              employeeCount: "10000+",
+              organizationType: "public"
+            },
+            // Additional sample records...
+          ],
+          totalResults: 5,
+          currentPage: page,
+          totalPages: 1,
+          pageSize: limit
+        });
+      }
 
       res.status(200).json({
         job,
