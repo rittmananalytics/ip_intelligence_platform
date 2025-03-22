@@ -238,6 +238,11 @@ export async function enrichIPAddresses(job: IpEnrichmentJob): Promise<void> {
                 // Check if the IP belongs to a common ISP and mark accordingly
                 const isIsp = isCommonISP(ipInfo.isp, ipInfo.org);
                 
+                // Track filtered IPs
+                if (isIsp) {
+                  filtered++;
+                }
+                
                 // Add company data if requested
                 if (job.includeCompany) {
                   enrichedRow["company"] = ipInfo.org || "";
@@ -287,7 +292,8 @@ export async function enrichIPAddresses(job: IpEnrichmentJob): Promise<void> {
                 await storage.updateEnrichmentJob(job.id, {
                   processedIPs: processed,
                   successfulIPs: successful,
-                  failedIPs: failed
+                  failedIPs: failed,
+                  filteredIPs: filtered
                 });
                 
                 // Save the current batch to database
@@ -322,6 +328,7 @@ export async function enrichIPAddresses(job: IpEnrichmentJob): Promise<void> {
               processedIPs: processed,
               successfulIPs: successful,
               failedIPs: failed,
+              filteredIPs: filtered,
               partialSaveAvailable: true,  // Ensure all data is marked as available
               lastCheckpoint: results.length
             });
@@ -334,7 +341,8 @@ export async function enrichIPAddresses(job: IpEnrichmentJob): Promise<void> {
               error: error instanceof Error ? error.message : "Unknown error",
               processedIPs: processed,
               successfulIPs: successful,
-              failedIPs: failed
+              failedIPs: failed,
+              filteredIPs: filtered
             };
             
             if (batchStartIndex > 0) {
@@ -353,7 +361,8 @@ export async function enrichIPAddresses(job: IpEnrichmentJob): Promise<void> {
             error: error.message,
             processedIPs: processed,
             successfulIPs: successful,
-            failedIPs: failed
+            failedIPs: failed,
+            filteredIPs: filtered
           };
           
           if (batchStartIndex > 0) {
@@ -372,7 +381,8 @@ export async function enrichIPAddresses(job: IpEnrichmentJob): Promise<void> {
       error: error instanceof Error ? error.message : "Unknown error",
       processedIPs: processed,
       successfulIPs: successful,
-      failedIPs: failed
+      failedIPs: failed,
+      filteredIPs: filtered
     };
     
     if (batchStartIndex > 0) {
