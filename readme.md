@@ -281,6 +281,63 @@ To ensure data resilience during long-running jobs, the application implements a
 
 The IP Intelligence Platform can be integrated with BigQuery using the BigQuery Connection feature. This allows SQL queries to directly call the IP enrichment API and incorporate the results into analytical workflows.
 
+#### BigQuery Remote Function Integration
+
+```
+┌─────────────┐     ┌────────────────┐     ┌────────────────┐
+│  BigQuery   │     │   BigQuery     │     │  IP Enrichment │
+│   Query     │────►│   Connection   │────►│     API        │
+│             │     │                │     │                │
+└─────────────┘     └────────────────┘     └────────┬───────┘
+                                                    │
+                    ┌────────────────┐     ┌────────▼───────┐
+                    │  SQL Results   │     │    JSON        │
+                    │  with IP Data  │◄────│   Response     │
+                    │                │     │                │
+                    └────────────────┘     └────────────────┘
+```
+
+To implement the integration:
+
+1. Create a BigQuery Connection to Cloud Resource
+2. Create a remote function that uses the connection to call the IP API
+3. Invoke the function in SQL queries to enrich IP data
+
+Example SQL for setting up the connection and function:
+
+```sql
+-- Step 1: Create a connection (one-time setup)
+CREATE OR REPLACE CONNECTION `your_project.your_region.your_connection`
+OPTIONS(
+  location = 'your_region',
+  connection_type = 'CLOUD_RESOURCE'
+);
+
+-- Step 2: Create the remote function using the connection
+CREATE OR REPLACE FUNCTION `your_project.your_dataset.get_ip_intelligence`(ip STRING)
+RETURNS STRUCT<
+  country STRING,
+  city STRING,
+  region STRING,
+  latitude FLOAT64,
+  longitude FLOAT64,
+  company STRING,
+  isp STRING,
+  asn STRING,
+  ispFiltered BOOL,
+  domain STRING,
+  success BOOL
+>
+REMOTE WITH CONNECTION `your_project.your_region.your_connection`
+OPTIONS(
+  endpoint = 'https://ip-enrich.rittmananalytics.com/api/lookup',
+  user_defined_context = [("ip", ip)],
+  max_batching_rows = 50
+);
+```
+
+**Important Note:** JavaScript UDFs in BigQuery cannot make external network requests due to sandbox restrictions. The BigQuery Connection approach is the only supported method for calling external APIs.
+
 ## Performance Considerations
 
 The application is designed for efficient handling of large datasets:
