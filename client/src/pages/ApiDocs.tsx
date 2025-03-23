@@ -84,20 +84,26 @@ export default function ApiDocs() {
               <div>
                 <h3 className="font-semibold text-lg">Integration with BigQuery</h3>
                 <p className="my-2">
-                  You can use this API with BigQuery User Defined Functions (UDFs) to enrich your log data with IP intelligence directly in your SQL queries.
-                  There are two recommended approaches:
+                  You can use this API with BigQuery Remote Functions to enrich your log data with IP intelligence directly in your SQL queries.
                 </p>
                 
-                <h4 className="font-semibold mt-4">Option 1: Using BigQuery Connection (Recommended)</h4>
+                <h4 className="font-semibold mt-4">Using BigQuery Connection</h4>
                 <p className="my-2">
-                  The most reliable way to integrate with external APIs in BigQuery is to use the BigQuery Connection feature.
-                  This approach requires setting up a connection resource but provides better reliability and performance:
+                  To integrate with external APIs in BigQuery, you need to use the BigQuery Connection feature.
+                  This approach requires setting up a connection resource but provides proper API access:
                 </p>
                 <ol className="list-decimal list-inside space-y-2 my-2 ml-4">
                   <li>Create a BigQuery connection to Cloud Resource (requires BigQuery Admin permissions)</li>
                   <li>Use the connection in your remote function definition</li>
                   <li>Call the remote function in your SQL queries</li>
                 </ol>
+                
+                <div className="bg-amber-50 border-l-4 border-amber-500 p-4 my-4">
+                  <p className="text-amber-700">
+                    <strong>Important Note:</strong> JavaScript UDFs in BigQuery cannot make external network requests due to sandbox restrictions.
+                    The BigQuery Connection approach is the only supported method for calling external APIs.
+                  </p>
+                </div>
                 
                 <pre className="bg-muted p-3 rounded-md text-sm my-2 overflow-x-auto">
 {`-- Step 1: Create a connection (one-time setup, do this in the BigQuery UI or with this SQL)
@@ -125,94 +131,9 @@ RETURNS STRUCT<
 REMOTE WITH CONNECTION \`your_project.your_region.your_connection\`
 OPTIONS(
   endpoint = 'https://ip-enrich.rittmananalytics.com/api/lookup',
+  user_defined_context = [("ip", ip)],
   max_batching_rows = 50
 );`}
-                </pre>
-                
-                <h4 className="font-semibold mt-4">Option 2: Using JavaScript UDF (Alternative)</h4>
-                <p className="my-2">
-                  If you don't have permissions to create BigQuery connections, you can use a JavaScript UDF.
-                  Note that this approach may have limitations with network access in some BigQuery environments:
-                </p>
-                
-                <h3 className="font-semibold text-lg mt-4">Example BigQuery UDF</h3>
-                <pre className="bg-muted p-3 rounded-md text-sm my-2 overflow-x-auto">
-{`CREATE FUNCTION \`your_project.your_dataset.get_ip_intelligence\`(ip STRING) 
-RETURNS STRUCT<
-  country STRING,
-  city STRING,
-  region STRING,
-  latitude FLOAT64,
-  longitude FLOAT64,
-  company STRING,
-  isp STRING,
-  asn STRING,
-  ispFiltered BOOL,
-  domain STRING,
-  success BOOL
->
-LANGUAGE js AS """
-  function get_ip_intelligence(ip) {
-    // Using the deployed application URL
-    var url = 'https://ip-enrich.rittmananalytics.com/api/lookup?ip=' + ip;
-    
-    try {
-      // Standard fetch using XMLHttpRequest (doesn't require external libraries)
-      var xhr = new XMLHttpRequest();
-      xhr.open('GET', url, false);  // false makes the request synchronous
-      xhr.send(null);
-      
-      // Handle errors
-      if (xhr.status !== 200) {
-        return {
-          country: null,
-          city: null,
-          region: null,
-          latitude: null,
-          longitude: null,
-          company: null,
-          isp: null,
-          asn: null,
-          ispFiltered: null,
-          domain: null,
-          success: false
-        };
-      }
-      
-      var data = JSON.parse(xhr.responseText);
-      
-      // Return the enriched data
-      return {
-        country: data.country || null,
-        city: data.city || null,
-        region: data.region || null,
-        latitude: data.latitude || null,
-        longitude: data.longitude || null,
-        company: data.company || null,
-        isp: data.isp || null,
-        asn: data.asn || null,
-        ispFiltered: data.ispFiltered || false,
-        domain: data.domain || null,
-        success: data.success || false
-      };
-    } catch (e) {
-      // Handle any exceptions
-      return {
-        country: null,
-        city: null,
-        region: null,
-        latitude: null,
-        longitude: null,
-        company: null,
-        isp: null,
-        asn: null,
-        ispFiltered: null,
-        domain: null,
-        success: false
-      };
-    }
-  }
-""";`}
                 </pre>
                 
                 <h3 className="font-semibold text-lg mt-4">Using the UDF in a Query</h3>
