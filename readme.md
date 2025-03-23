@@ -1,4 +1,4 @@
-# IP Intelligence Platform - Technical Documentation
+# IP Intelligence Platform
 
 ## Overview
 
